@@ -4,6 +4,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
 import os
+import random
 
 server_id = discord.Object(id=1174700277375438889)
 
@@ -17,26 +18,31 @@ class MeuClient(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
-        self.tree.copy_global_to(guild=server_id)
         await self.tree.sync(guild=server_id)
 
-async def call_api_with_retry(func, *args, **kwargs):
-    retries = 3  # Número máximo de tentativas
-    delay = 1  # Tempo inicial de espera
-
-    for _ in range(retries):
+async def call_api_with_retry(func, *args, max_retries=3, **kwargs):
+    delay = 1
+    for i in range(max_retries):
         try:
             return await func(*args, **kwargs)
         except discord.errors.HTTPException as e:
             if e.status == 429:
                 retry_after = int(e.headers.get('Retry-After', 1))
-                print(f"Rate limited. Retrying in {retry_after} seconds.")
-                await asyncio.sleep(retry_after + delay)
-                delay *= 2  # Aumenta o tempo de espera exponencialmente
+                adjusted_delay = retry_after + delay + random.uniform(0, 1)  # Adding jitter
+                print(f"Rate limited. Retrying in {adjusted_delay} seconds.")
+                await asyncio.sleep(adjusted_delay)
+                delay *= 2
             else:
-                raise  # Se o erro não for relacionado a limite de taxa, re-levanta a exceção
+                raise
 
 client = MeuClient(intents=discord.Intents.all())
+
+# Cooldown decorator example
+@commands.cooldown(1, 30, commands.BucketType.user)
+@client.tree.command()
+@app_commands.default_permissions(manage_messages=True)
+async def limparchat(interaction: discord.Interaction, quantidade: int):
+    await interaction.channel.purge(limit=quantidade)
 
 # bot startup
 @client.event
