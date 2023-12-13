@@ -4,6 +4,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
 import os
+import time
 
 server_id = discord.Object(id=1174700277375438889)
 
@@ -20,18 +21,31 @@ class MeuClient(discord.Client):
         self.tree.copy_global_to(guild=server_id)
         await self.tree.sync(guild=server_id)
 
+async def call_api_with_retry(func, *args, **kwargs):
+    retries = 3  # Número máximo de tentativas
+    delay = 1  # Tempo inicial de espera
+
+    for _ in range(retries):
+        try:
+            return await func(*args, **kwargs)
+        except discord.errors.HTTPException as e:
+            if e.status == 429:
+                retry_after = int(e.headers.get('Retry-After', 1))
+                print(f"Rate limited. Retrying in {retry_after} seconds.")
+                await asyncio.sleep(retry_after + delay)
+                delay *= 2  # Aumenta o tempo de espera exponencialmente
+            else:
+                raise  # Se o erro não for relacionado a limite de taxa, re-levanta a exceção
 
 client = MeuClient(intents=discord.Intents.all())
 
 # bot startup
-
-
 @client.event
 async def on_ready():
     print("O bot está funcionando 🚀")
 
-# mensagem de boas vindas
-
+async def minha_funcao_que_chama_api():
+    await call_api_with_retry(client.tree.sync, guild=server_id)
 
 @client.event
 async def on_member_join(member):
@@ -146,6 +160,7 @@ async def limparchat(interaction: discord.Interaction, quantidade: int):
 @app_commands.default_permissions(manage_messages=True)
 async def pomo_message(interaction: discord.Interaction):
     await interaction.response.send_message("Olá! Neste canal você poderá acompanhar o seu tempo de estudo e de descanso.\nNão se preocupe, você será avisado(a) quando um desses tempos terminar 😄 ")
+
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
