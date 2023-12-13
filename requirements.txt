@@ -3,4 +3,3 @@ discord
 discord.py
 python-dotenv
 yarl
-time

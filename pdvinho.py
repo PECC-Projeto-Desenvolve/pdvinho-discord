@@ -4,7 +4,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
 import os
-import time
 
 server_id = discord.Object(id=1174700277375438889)
 
