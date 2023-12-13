@@ -155,10 +155,10 @@ async def embed_regras(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
-@client.tree.command()
-@app_commands.default_permissions(manage_messages=True)
-async def limparchat(interaction: discord.Interaction, quantidade: int):
-    await interaction.channel.purge(limit=quantidade)
+# @client.tree.command()
+# @app_commands.default_permissions(manage_messages=True)
+# async def limparchat(interaction: discord.Interaction, quantidade: int):
+#     await interaction.channel.purge(limit=quantidade)
 
 
 @client.tree.command()
