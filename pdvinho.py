@@ -40,9 +40,6 @@ async def on_member_join(member):
 
     mensagem = await boasvindas.send(f"Seja muito bem vindo ao servidor oficial do Projeto Desenvolve {member.mention}! Não esqueça de ler as regras em {regras.mention}")
 
-    await asyncio.sleep(180)
-    await mensagem.delete()
-
 
 @client.tree.command()
 @app_commands.default_permissions(kick_members=True)
